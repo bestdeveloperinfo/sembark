@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Sembark Frontend</title>
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+        }
+
+        .box {
+            border: 1px solid #ccc;
+            padding: 20px;
+            width: 400px;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #000;
+            padding: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>SEMBARK FRONTEND (HTML + JS)</h2>
+
+    <!-- Login Box -->
+    <div id="loginBox" class="box">
+        <h3>Login</h3>
+        <input id="email" placeholder="Email" /><br><br>
+        <input id="password" type="password" placeholder="Password" /><br><br>
+        <button onclick="login()">Login</button>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="box" style="display:none;">
+        <h3>User Info</h3>
+        <pre id="userInfo"></pre>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <!-- Short URL Section -->
+    <div id="shortUrlBox" class="box" style="display:none;">
+        <h3>Create Short URL</h3>
+        <input id="urlInput" placeholder="https://example.com"><br><br>
+        <button onclick="createShortUrl()">Create</button>
+
+        <h3>Short URL List</h3>
+        <button onclick="loadShortUrls()">Load URLs</button>
+
+        <table id="urlTable"></table>
+    </div>
+
+
+    <script>
+        let token = null;
+
+        // LOGIN FUNCTION
+        async function login() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            const res = await fetch("http://127.0.0.1:8000/api/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Accept": "application/json" },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await res.json();
+
+            if (data.token) {
+                token = data.token;
+                localStorage.setItem("token", token);
+                showDashboard();
+                loadUserInfo();
+            } else {
+                alert("Invalid email/password");
+            }
+        }
+
+        // SHOW DASHBOARD
+        function showDashboard() {
+            document.getElementById("loginBox").style.display = "none";
+            document.getElementById("dashboard").style.display = "block";
+            document.getElementById("shortUrlBox").style.display = "block";
+        }
+
+        // LOAD USER INFO
+        async function loadUserInfo() {
+            const res = await fetch("http://127.0.0.1:8000/api/me", {
+                headers: {
+                    "Authorization": "Bearer " + localStorage.getItem("token"),
+                    "Accept": "application/json"
+                }
+            });
+
+            const data = await res.json();
+            document.getElementById("userInfo").innerText = JSON.stringify(data, null, 2);
+        }
+
+
+        // CREATE SHORT URL
+        async function createShortUrl() {
+            const original_url = document.getElementById("urlInput").value;
+
+            const res = await fetch("http://127.0.0.1:8000/api/short-urls", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + localStorage.getItem("token")
+                },
+                body: JSON.stringify({ original_url })
+            });
+
+            const data = await res.json();
+
+            if (data.error) {
+                alert(data.error);
+            } else {
+                alert("Short URL Created");
+                loadShortUrls();
+            }
+        }
+
+
+        // LOAD LIST
+        async function loadShortUrls() {
+            const res = await fetch("http://127.0.0.1:8000/api/short-urls", {
+                headers: {
+                    "Authorization": "Bearer " + localStorage.getItem("token")
+                }
+            });
+
+            const data = await res.json();
+
+            let html = "<tr><th>ID</th><th>Slug</th><th>Original URL</th></tr>";
+            data.forEach(row => {
+                html += `<tr>
+                    <td>${row.id}</td>
+                    <td>${row.slug}</td>
+                    <td>${row.original_url}</td>
+                </tr>`;
+            });
+
+            document.getElementById("urlTable").innerHTML = html;
+        }
+
+
+        // LOGOUT
+        function logout() {
+            localStorage.removeItem("token");
+            location.reload();
+        }
+
+        // If already logged in
+        if (localStorage.getItem("token")) {
+            showDashboard();
+            loadUserInfo();
+        }
+    </script>
+
+</body>
+
+</html>
