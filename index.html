@@ -33,24 +33,18 @@
 
 <body>
 
-    <h2>SEMBARK FRONTEND (HTML + JS)</h2>
-
-    <!-- Login Box -->
+    <h2>SEMBARK FRONTEND</h2>
     <div id="loginBox" class="box">
         <h3>Login</h3>
         <input id="email" placeholder="Email" /><br><br>
         <input id="password" type="password" placeholder="Password" /><br><br>
         <button onclick="login()">Login</button>
     </div>
-
-    <!-- Dashboard -->
     <div id="dashboard" class="box" style="display:none;">
         <h3>User Info</h3>
         <pre id="userInfo"></pre>
         <button onclick="logout()">Logout</button>
     </div>
-
-    <!-- Short URL Section -->
     <div id="shortUrlBox" class="box" style="display:none;">
         <h3>Create Short URL</h3>
         <input id="urlInput" placeholder="https://example.com"><br><br>
@@ -61,12 +55,9 @@
 
         <table id="urlTable"></table>
     </div>
-
-
     <script>
         let token = null;
 
-        // LOGIN FUNCTION
         async function login() {
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
@@ -89,14 +80,12 @@
             }
         }
 
-        // SHOW DASHBOARD
         function showDashboard() {
             document.getElementById("loginBox").style.display = "none";
             document.getElementById("dashboard").style.display = "block";
             document.getElementById("shortUrlBox").style.display = "block";
         }
 
-        // LOAD USER INFO
         async function loadUserInfo() {
             const res = await fetch("http://127.0.0.1:8000/api/me", {
                 headers: {
@@ -109,8 +98,6 @@
             document.getElementById("userInfo").innerText = JSON.stringify(data, null, 2);
         }
 
-
-        // CREATE SHORT URL
         async function createShortUrl() {
             const original_url = document.getElementById("urlInput").value;
 
@@ -133,8 +120,6 @@
             }
         }
 
-
-        // LOAD LIST
         async function loadShortUrls() {
             const res = await fetch("http://127.0.0.1:8000/api/short-urls", {
                 headers: {
@@ -157,19 +142,15 @@
         }
 
 
-        // LOGOUT
         function logout() {
             localStorage.removeItem("token");
             location.reload();
         }
-
-        // If already logged in
         if (localStorage.getItem("token")) {
             showDashboard();
             loadUserInfo();
         }
     </script>
-
 </body>
 
 </html>
